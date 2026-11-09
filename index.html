@@ -1,0 +1,479 @@
+
+<script>
+const $ = id => document.getElementById(id);
+
+const questions = [
+  {
+    title: "你平常買衣服，最常遇到什麼困擾？",
+    sub: "找出你最想避免的網購問題",
+    options: [
+      "尺寸不合，太大或太小",
+      "版型不適合，穿起來不好看",
+      "顏色跟想像中不一樣",
+      "材質不舒服，跟照片有落差"
+    ]
+  },
+  {
+    title: "你喜歡衣服穿起來是什麼感覺？",
+    sub: "了解你偏好的合身程度",
+    options: [
+      "寬鬆舒服，有空間感",
+      "剛剛好合身，不緊也不鬆",
+      "修身一點，喜歡俐落線條",
+      "看衣服款式決定"
+    ]
+  },
+  {
+    title: "挑選上衣時，你最在意哪個部位？",
+    sub: "幫助篩選適合的剪裁",
+    options: [
+      "肩膀與肩線",
+      "胸圍與腰身",
+      "衣長與整體比例",
+      "手臂與袖子"
+    ]
+  },
+  {
+    title: "哪一種顏色的衣服你最常穿？",
+    sub: "從熟悉的配色開始推薦",
+    options: [
+      "黑、白、灰等基本色",
+      "米白、奶茶、咖啡等暖色",
+      "藍、灰藍等冷色",
+      "各種顏色都願意嘗試"
+    ]
+  },
+  {
+    title: "你最喜歡哪種穿起來的材質感？",
+    sub: "降低材質不符合期待的機率",
+    options: [
+      "柔軟親膚，不喜歡刺癢",
+      "輕薄透氣，不喜歡悶熱",
+      "挺版有型，喜歡有輪廓",
+      "有彈性，活動方便"
+    ]
+  },
+  {
+    title: "你平常最常穿衣服的場合是？",
+    sub: "讓推薦更貼近日常生活",
+    options: [
+      "上學、上班、日常外出",
+      "約會、聚餐、拍照",
+      "逛街、旅行、休閒活動",
+      "各種場合都希望能搭配"
+    ]
+  },
+  {
+    title: "你最希望衣服幫你達到什麼效果？",
+    sub: "找出你最重視的穿搭目標",
+    options: [
+      "整體比例看起來更修長",
+      "修飾自己在意的部位",
+      "穿得舒服又有質感",
+      "簡單搭配就很好看"
+    ]
+  }
+];
+
+let step = 0;
+let answers = Array(questions.length).fill(-1);
+let moving = false;
+
+function toggleMenu(open) {
+  $("menu").hidden = !open;
+  document.body.style.overflow = open ? "hidden" : "";
+}
+
+function openQuiz() {
+  $("quiz").hidden = false;
+  showQuestion();
+  setTimeout(() => {
+    $("quiz").scrollIntoView({ behavior: "smooth" });
+  }, 50);
+}
+
+function showQuestion() {
+  $("question-view").hidden = false;
+  $("size-view").hidden = true;
+  $("result-view").hidden = true;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[step];
+
+  $("question-count").textContent =
+    `第 ${step + 1} 題，共 ${questions.length} 題`;
+
+  $("progress-fill").style.width =
+    ((step + 1) / questions.length * 100) + "%";
+
+  $("question-title").textContent = q.title;
+  $("question-sub").textContent = q.sub;
+  $("answer-list").innerHTML = "";
+
+  q.options.forEach((text, i) => {
+    const button = document.createElement("button");
+
+    button.className =
+      "answer" + (answers[step] === i ? " active" : "");
+
+    button.textContent = "◯　" + text;
+
+    button.onclick = () => {
+      if (moving) return;
+
+      answers[step] = i;
+      button.classList.add("active");
+
+      moving = true;
+
+      // 選擇答案後，自動跳下一題
+      setTimeout(() => {
+        if (step < questions.length - 1) {
+          step++;
+          renderQuestion();
+        } else {
+          $("question-view").hidden = true;
+          $("size-view").hidden = false;
+        }
+
+        moving = false;
+      }, 250);
+    };
+
+    $("answer-list").appendChild(button);
+  });
+
+  $("back-button").disabled = step === 0;
+  $("next-button").hidden = true;
+}
+
+$("back-button").onclick = () => {
+  if (moving) return;
+
+  if (step > 0) {
+    step--;
+    renderQuestion();
+  }
+};
+
+// 尺寸頁面返回上一題
+function backToQuestions() {
+  step = questions.length - 1;
+  showQuestion();
+}
+
+// 風格分析
+function analyzeStyle() {
+  const scores = {
+    "韓系簡約風": 0,
+    "韓系溫柔風": 0,
+    "韓系街頭風": 0,
+    "韓系氣質風": 0
+  };
+
+  // 穿著版型
+  if (answers[1] === 0) {
+    scores["韓系街頭風"] += 3;
+    scores["韓系簡約風"] += 1;
+  } else if (answers[1] === 1) {
+    scores["韓系簡約風"] += 3;
+    scores["韓系溫柔風"] += 1;
+  } else if (answers[1] === 2) {
+    scores["韓系氣質風"] += 3;
+  } else {
+    scores["韓系簡約風"] += 1;
+  }
+
+  // 顏色偏好
+  if (answers[3] === 0) {
+    scores["韓系簡約風"] += 3;
+    scores["韓系街頭風"] += 1;
+  } else if (answers[3] === 1) {
+    scores["韓系溫柔風"] += 3;
+  } else if (answers[3] === 2) {
+    scores["韓系氣質風"] += 2;
+    scores["韓系簡約風"] += 1;
+  } else {
+    scores["韓系街頭風"] += 2;
+  }
+
+  // 材質偏好
+  if (answers[4] === 0) {
+    scores["韓系溫柔風"] += 2;
+  } else if (answers[4] === 1) {
+    scores["韓系簡約風"] += 2;
+  } else if (answers[4] === 2) {
+    scores["韓系氣質風"] += 2;
+    scores["韓系街頭風"] += 1;
+  } else {
+    scores["韓系街頭風"] += 2;
+  }
+
+  // 穿著場合
+  if (answers[5] === 0) {
+    scores["韓系簡約風"] += 2;
+  } else if (answers[5] === 1) {
+    scores["韓系溫柔風"] += 2;
+    scores["韓系氣質風"] += 1;
+  } else if (answers[5] === 2) {
+    scores["韓系街頭風"] += 2;
+  } else {
+    scores["韓系簡約風"] += 1;
+    scores["韓系氣質風"] += 1;
+  }
+
+  // 穿搭目標
+  if (answers[6] === 0) {
+    scores["韓系氣質風"] += 2;
+  } else if (answers[6] === 1) {
+    scores["韓系街頭風"] += 1;
+    scores["韓系氣質風"] += 1;
+  } else if (answers[6] === 2) {
+    scores["韓系溫柔風"] += 2;
+  } else {
+    scores["韓系簡約風"] += 2;
+  }
+
+  return Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])[0][0];
+}
+
+const styleDescriptions = {
+  "韓系簡約風":
+    "你喜歡乾淨、耐看又容易搭配的穿著方式。簡單的色彩與俐落剪裁，能讓日常穿搭自然有質感。",
+
+  "韓系溫柔風":
+    "你偏好柔和的色調與舒適的材質。透過柔軟布料、自然線條與溫暖配色，營造輕柔的日常氛圍。",
+
+  "韓系街頭風":
+    "你喜歡自在、有個性又帶有空間感的穿搭。寬鬆版型、層次搭配與率性單品，很適合你的穿衣偏好。",
+
+  "韓系氣質風":
+    "你重視衣服的剪裁、比例與整體質感。透過俐落線條、挺版材質與協調配色，呈現簡潔又精緻的感覺。"
+};
+
+const styleItems = {
+  "韓系簡約風": [
+    ["基本款襯衫", "簡單百搭，適合日常穿著。"],
+    ["直筒長褲", "容易與不同上衣搭配。"],
+    ["簡約針織上衣", "適合打造乾淨的日常造型。"]
+  ],
+  "韓系溫柔風": [
+    ["柔軟針織上衣", "營造自然柔和的穿搭氛圍。"],
+    ["奶茶色襯衫", "適合喜歡暖色系的穿搭。"],
+    ["垂墜感長褲", "呈現柔和自然的線條。"]
+  ],
+  "韓系街頭風": [
+    ["寬鬆落肩上衣", "打造自在率性的穿著感。"],
+    ["寬版休閒長褲", "適合日常外出與層次搭配。"],
+    ["挺版休閒外套", "增加整體造型的輪廓感。"]
+  ],
+  "韓系氣質風": [
+    ["挺版襯衫", "呈現俐落的穿搭線條。"],
+    ["修身剪裁外套", "增加整體造型的精緻感。"],
+    ["直筒西裝褲", "適合簡潔有質感的搭配。"]
+  ]
+};
+
+function showResult(skip) {
+  if (!skip) {
+    const limits = {
+      height: [80, 230],
+      chest: [40, 200],
+      waist: [35, 200],
+      hips: [40, 220]
+    };
+
+    for (const [id, [min, max]] of Object.entries(limits)) {
+      const raw = $(id).value;
+
+      if (
+        raw &&
+        (!Number.isFinite(+raw) || +raw < min || +raw > max)
+      ) {
+        alert("請確認尺寸資料，或留空略過。");
+        return;
+      }
+    }
+  }
+
+  $("question-view").hidden = true;
+  $("size-view").hidden = true;
+  $("result-view").hidden = false;
+
+  const style = analyzeStyle();
+
+  const fit = [
+    "寬鬆有型",
+    "自然合身",
+    "俐落修身",
+    "多變穿搭"
+  ][answers[1]];
+
+  const color = [
+    "黑白灰基本色",
+    "溫柔暖色系",
+    "清爽冷色系",
+    "多元配色"
+  ][answers[3]];
+
+  const fabric = [
+    "柔軟親膚",
+    "輕薄透氣",
+    "挺版輪廓",
+    "舒適彈性"
+  ][answers[4]];
+
+  const scene = [
+    "日常通勤",
+    "約會聚餐",
+    "休閒旅行",
+    "多場合穿搭"
+  ][answers[5]];
+
+  // 顯示韓系風格名稱
+  $("result-title").textContent =
+    "你的專屬風格｜" + style;
+
+  $("result-tags").innerHTML =
+    [style, fit, color, fabric, scene]
+      .map(x => `<span class="tag">${x}</span>`)
+      .join("");
+
+  $("result-summary").textContent =
+    styleDescriptions[style] +
+    ` 你偏好${fit}的穿著感，` +
+    `常選擇${color}，` +
+    `喜歡${fabric}的材質，` +
+    `主要穿著場合為${scene}。`;
+
+  // 依照風格推薦單品
+  const items = styleItems[style];
+
+  $("recommend-list").innerHTML =
+    items.map((item, i) => `
+      <div class="recommend">
+        <span class="eyebrow">
+          0${i + 1} / STYLE PICK
+        </span>
+        <strong>${item[0]}</strong>
+        <p>${item[1]}</p>
+      </div>
+    `).join("");
+
+  // 網購避雷分析
+  const problemTips = [
+    "比對商品平量尺寸，不要只看 S、M、L。",
+    "留意肩線、胸腰剪裁、衣長與不同角度實拍。",
+    "比較自然光照片，留意螢幕色差。",
+    "確認材質成分、厚薄、彈性與觸感描述。"
+  ];
+
+  const focusTips = [
+    "確認肩寬、肩線位置及袖長。",
+    "確認胸寬、腰部剪裁及下擺寬度。",
+    "確認衣長、腰線與上下身比例。",
+    "確認袖圍、袖長及手臂活動空間。"
+  ];
+
+  const fabricTips = [
+    "留意布料是否親膚、是否有內裡及刺癢風險。",
+    "確認布料厚薄、透氣性與透光程度。",
+    "確認布料挺度、織法及實際厚度。",
+    "確認布料伸縮程度與活動舒適度。"
+  ];
+
+  const colorTips = [
+    "留意黑白灰在不同光源下的色差。",
+    "比較米色、奶茶色及咖啡色的實拍色調。",
+    "比較藍色與灰藍色的實拍色調。",
+    "依自己的衣櫃搭配需求挑選顏色。"
+  ];
+
+  const tips = [
+    ["最在意的網購問題", problemTips[answers[0]]],
+    ["版型與尺寸", focusTips[answers[2]]],
+    ["材質", fabricTips[answers[4]]],
+    ["顏色", colorTips[answers[3]]]
+  ];
+
+  $("tip-list").innerHTML =
+    tips.map((item, i) => `
+      <div class="tip">
+        <strong>0${i + 1}｜${item[0]}</strong>
+        <p>${item[1]}</p>
+      </div>
+    `).join("");
+
+  // 購物前檢查清單
+  const checks = [
+    "確認商品平量尺寸，並與自己穿得舒服的衣服比較。",
+    "確認材質成分、厚薄、彈性及實拍照片。",
+    "確認模特兒身高與實際穿著尺寸。",
+    "確認商品洗滌方式及賣場退換貨資訊。"
+  ];
+
+  $("check-list").innerHTML =
+    checks.map(text => `
+      <label class="check">
+        <input type="checkbox"> ${text}
+      </label>
+    `).join("");
+
+  // 尺寸資料
+  const fields = [
+    ["height", "身高"],
+    ["usual", "平常尺寸"],
+    ["chest", "胸圍"],
+    ["waist", "腰圍"],
+    ["hips", "臀圍"]
+  ];
+
+  const sizeData = skip ? [] :
+    fields
+      .filter(([id]) => $(id).value)
+      .map(([id, label]) =>
+        `${label}：${$(id).value}${id === "usual" ? "" : " cm"}`
+      );
+
+  $("size-summary").hidden = sizeData.length === 0;
+
+  $("size-summary").textContent =
+    sizeData.join("／") +
+    "。此資料僅供參考，仍需比對商品實際尺寸。";
+
+  $("quiz-card").scrollIntoView({ behavior: "smooth" });
+}
+
+function restartQuiz() {
+  step = 0;
+  answers = Array(questions.length).fill(-1);
+  moving = false;
+
+  ["height", "chest", "waist", "hips"].forEach(id => {
+    $(id).value = "";
+  });
+
+  $("usual").value = "";
+
+  showQuestion();
+
+  $("quiz-card").scrollIntoView({ behavior: "smooth" });
+}
+
+// 選單中的測驗連結
+document.querySelectorAll('a[href="#quiz"]').forEach(a => {
+  a.addEventListener("click", e => {
+    e.preventDefault();
+    openQuiz();
+  });
+});
+
+if (location.hash === "#quiz") {
+  $("quiz").hidden = false;
+}
+
+renderQuestion();
+</script>
